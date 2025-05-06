@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>쓰레기통 관리 시스템</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-gray: #f5f5f5;
+      --dark-gray: #333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .logo {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 30px;
+    }
+
+    .logo span {
+      color: var(--success-color);
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      color: var(--dark-gray);
+      margin-bottom: 50px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .nav-button {
+      flex: 1;
+      min-width: 300px;
+      padding: 30px;
+      background: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 1.2em;
+      text-align: center;
+      color: var(--primary-color);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .nav-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    }
+
+    .nav-button:active {
+      transform: translateY(-2px);
+    }
+
+    .button-icon {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .button-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .button-description {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .button-container {
+        flex-direction: column;
+      }
+      
+      .nav-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">쓰레기통 <span>관리</span> 시스템</div>
+    <div class="subtitle">관리자 또는 미화원 화면으로 이동하세요</div>
+    
+    <div class="button-container">
+      <button class="nav-button" onclick="window.location.href='trash-map.html'">
+        <span class="button-icon">🗺️</span>
+        <span class="button-title">관리자</span>
+        <span class="button-description">쓰레기통 관리 및 미화원 관리</span>
+      </button>
+      <button class="nav-button" onclick="window.location.href='cleaner-view.html'">
+        <span class="button-icon">🧹</span>
+        <span class="button-title">미화원</span>
+        <span class="button-description">작업 현황 및 일정 관리</span>
+      </button>
+      <button class="nav-button" onclick="window.location.href='user-view.html'">
+        <span class="button-icon">👤</span>
+        <span class="button-title">사용자</span>
+        <span class="button-description">주변 쓰레기통 찾기 및 상태 확인</span>
+      </button>
+    </div>
+  </div>
+</body>
+</html> 

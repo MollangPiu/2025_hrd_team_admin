@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>쓰레기통 찾기</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-gray: #f5f5f5;
+      --dark-gray: #333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-title {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .user-location {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9em;
+      color: #f5f5f5;
+    }
+
+    .location-icon {
+      font-size: 1.2em;
+    }
+
+    .map-container {
+      height: 500px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .trash-list {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .list-header {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .list-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .list-description {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .trash-item {
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      border: 1px solid #eee;
+    }
+
+    .trash-item:hover {
+      background-color: var(--light-gray);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .trash-item.selected {
+      background-color: rgba(147, 112, 219, 0.1);
+      border-left: 4px solid #9370db;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .trash-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .trash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .trash-address {
+      font-weight: bold;
+    }
+
+    .trash-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .status-normal { background-color: var(--success-color); }
+    .status-warning { background-color: var(--warning-color); }
+    .status-critical { background-color: var(--danger-color); }
+
+    .trash-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .trash-detail-item {
+      font-size: 0.9em;
+      color: var(--dark-gray);
+    }
+
+    .progress-bar {
+      height: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .fill-normal { background-color: var(--success-color); }
+    .fill-warning { background-color: var(--warning-color); }
+    .fill-critical { background-color: var(--danger-color); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--dark-gray);
+    }
+
+    .trash-features {
+      margin: 20px 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .feature-item {
+      text-align: center;
+      padding: 10px;
+      background-color: var(--light-gray);
+      border-radius: 5px;
+    }
+
+    .feature-icon {
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+
+    .feature-label {
+      font-size: 0.9em;
+      color: var(--dark-gray);
+    }
+
+    .comments-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .comment-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .comment-user {
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .comment-time {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .comment-content {
+      font-size: 0.9em;
+    }
+
+    .population-info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--light-gray);
+      border-radius: 5px;
+    }
+
+    .population-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .population-value {
+      font-size: 1.2em;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .population-description {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .detail-btn {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      padding: 8px 15px;
+      background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .detail-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #2980b9, var(--secondary-color));
+    }
+
+    .detail-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+    }
+
+    .detail-btn::before {
+      content: "🔍";
+      font-size: 1.1em;
+    }
+
+    .logout-btn {
+      padding: 8px 15px;
+      background: linear-gradient(135deg, var(--danger-color), #c0392b);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #c0392b, var(--danger-color));
+    }
+
+    .logout-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+    }
+
+    .logout-btn::before {
+      content: "🚪";
+      font-size: 1.1em;
+    }
+
+    .add-info-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--success-color), #27ae60);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .add-info-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #27ae60, var(--success-color));
+    }
+
+    .add-info-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+    }
+
+    .add-info-btn::before {
+      content: "📝";
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="header-title">쓰레기통 찾기</div>
+      <div class="user-location">
+        <span class="location-icon">📍</span>
+        <span>서울특별시 은평구 응암동 123-45</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="logout-btn" onclick="window.location.href='index.html'">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+
+    <div class="trash-list">
+      <div class="list-header">
+        <div class="list-title">주변 쓰레기통 목록</div>
+        <div class="list-description">사용자 위치 기준 가까운 순서로 정렬됩니다.</div>
+      </div>
+      <div class="trash-item" data-lat="37.6000" data-lng="126.9300">
+        <div class="trash-header">
+          <div class="trash-address">서울시 은평구 은평구청앞</div>
+          <span class="trash-status status-warning">여유있음</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fill-warning" style="width: 65%"></div>
+        </div>
+        <div class="trash-details">
+          <div class="trash-detail-item">
+            <div>분리수거</div>
+            <div>가능</div>
+          </div>
+          <div class="trash-detail-item">
+            <div>물 버리기</div>
+            <div>가능</div>
+          </div>
+        </div>
+        <button class="detail-btn">상세보기</button>
+      </div>
+
+      <div class="trash-item" data-lat="37.5989" data-lng="126.9153">
+        <div class="trash-header">
+          <div class="trash-address">서울시 은평구 응암역앞</div>
+          <span class="trash-status status-normal">여유 많음</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fill-normal" style="width: 35%"></div>
+        </div>
+        <div class="trash-details">
+          <div class="trash-detail-item">
+            <div>분리수거</div>
+            <div>가능</div>
+          </div>
+          <div class="trash-detail-item">
+            <div>물 버리기</div>
+            <div>가능</div>
+          </div>
+        </div>
+        <button class="detail-btn">상세보기</button>
+      </div>
+
+      <div class="trash-item" data-lat="37.6100" data-lng="126.9298">
+        <div class="trash-header">
+          <div class="trash-address">서울시 은평구 불광역앞</div>
+          <span class="trash-status status-critical">거의 찼음</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fill-critical" style="width: 85%"></div>
+        </div>
+        <div class="trash-details">
+          <div class="trash-detail-item">
+            <div>분리수거</div>
+            <div>가능</div>
+          </div>
+          <div class="trash-detail-item">
+            <div>물 버리기</div>
+            <div>가능</div>
+          </div>
+        </div>
+        <button class="detail-btn">상세보기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="trashModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">쓰레기통 상세 정보</div>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="trash-features">
+        <div class="feature-item">
+          <div class="feature-icon">🗑️</div>
+          <div class="feature-label">일반쓰레기</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">♻️</div>
+          <div class="feature-label">분리수거</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💧</div>
+          <div class="feature-label">물 버리기</div>
+        </div>
+      </div>
+      <div class="population-info">
+        <div class="population-title">주변 인구 밀도</div>
+        <div class="population-value">125</div>
+        <div class="population-description">평균 100 기준, 현재 인구 밀도가 높은 지역입니다.</div>
+      </div>
+      <div class="comments-section">
+        <div class="comment-item">
+          <div class="comment-header">
+            <span class="comment-user">김사용자</span>
+            <span class="comment-time">2024-03-20 14:30</span>
+          </div>
+          <div class="comment-content">분리수거가 잘 되어있어서 좋아요!</div>
+        </div>
+        <div class="comment-item">
+          <div class="comment-header">
+            <span class="comment-user">이사용자</span>
+            <span class="comment-time">2024-03-20 13:15</span>
+          </div>
+          <div class="comment-content">물 버리기가 편리해요.</div>
+        </div>
+        <button class="add-info-btn">쓰레기통 추가정보 등록</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script>
+    // 사용자의 현재 위치 (예시: 은평구청에서 약간 떨어진 위치)
+    const userPosition = {
+      lat: 37.6015,
+      lng: 126.9320
+    };
+
+    // 지도 초기화
+    const map = L.map('map').setView([userPosition.lat, userPosition.lng], 15);
+
+    // OpenStreetMap 타일 레이어 추가
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // 사용자 위치 마커 추가
+    const userIcon = L.divIcon({
+      className: 'user-icon',
+      html: `<div style="
+        position: relative;
+        background-color: var(--secondary-color); 
+        width: 32px; 
+        height: 32px; 
+        border-radius: 50%; 
+        border: 2px solid white;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      ">📍</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const userMarker = L.marker([userPosition.lat, userPosition.lng], { icon: userIcon })
+      .addTo(map)
+      .bindPopup('현재 위치');
+
+    // 쓰레기통 마커 추가
+    const trashMarkers = [];
+    let lastSelectedItem = null;
+
+    document.querySelectorAll('.trash-item').forEach(item => {
+      const lat = parseFloat(item.dataset.lat);
+      const lng = parseFloat(item.dataset.lng);
+      const status = item.querySelector('.trash-status').classList.contains('status-critical') ? 'critical' :
+                    item.querySelector('.trash-status').classList.contains('status-warning') ? 'warning' : 'normal';
+      
+      const fillColor = status === 'critical' ? '#e74c3c' : 
+                       status === 'warning' ? '#f39c12' : '#2ecc71';
+
+      const icon = L.divIcon({
+        className: 'trash-icon',
+        html: `<div style="
+          position: relative;
+          background-color: ${fillColor}; 
+          width: 24px; 
+          height: 24px; 
+          border-radius: 50%; 
+          border: 2px solid white;
+          box-shadow: 0 0 5px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 10px;
+        ">${item.querySelector('.progress-fill').style.width}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+      trashMarkers.push(marker);
+
+      // 마커 클릭 이벤트
+      marker.on('click', function() {
+        if (lastSelectedItem) {
+          lastSelectedItem.classList.remove('selected');
+        }
+        item.classList.add('selected');
+        lastSelectedItem = item;
+        
+        // 지도 컨테이너로 스크롤
+        document.querySelector('.map-container').scrollIntoView({ behavior: 'smooth' });
+        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // 리스트 아이템 클릭 이벤트
+      item.addEventListener('click', function(e) {
+        // 상세보기 버튼 클릭이 아닌 경우에만 지도 이동
+        if (!e.target.classList.contains('detail-btn')) {
+          if (lastSelectedItem) {
+            lastSelectedItem.classList.remove('selected');
+          }
+          item.classList.add('selected');
+          lastSelectedItem = item;
+          
+          // 지도 컨테이너로 스크롤
+          document.querySelector('.map-container').scrollIntoView({ behavior: 'smooth' });
+          map.setView([lat, lng], 18);
+          marker.openPopup();
+        }
+      });
+
+      // 상세보기 버튼 클릭 이벤트
+      const detailBtn = item.querySelector('.detail-btn');
+      detailBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // 부모 요소의 클릭 이벤트 방지
+        document.getElementById('trashModal').style.display = 'block';
+      });
+    });
+
+    // 모달 관련 기능
+    const modal = document.getElementById('trashModal');
+    const closeModal = document.querySelector('.close-modal');
+
+    closeModal.addEventListener('click', function() {
+      modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // 두 지점 간의 거리 계산 함수 (Haversine 공식)
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371; // 지구의 반경 (km)
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; // km 단위로 반환
+    }
+
+    // 쓰레기통 아이템을 거리순으로 정렬
+    function sortTrashItemsByDistance() {
+      const trashList = document.querySelector('.trash-list');
+      const items = Array.from(document.querySelectorAll('.trash-item'));
+      
+      items.sort((a, b) => {
+        const latA = parseFloat(a.dataset.lat);
+        const lngA = parseFloat(a.dataset.lng);
+        const latB = parseFloat(b.dataset.lat);
+        const lngB = parseFloat(b.dataset.lng);
+        
+        const distA = calculateDistance(userPosition.lat, userPosition.lng, latA, lngA);
+        const distB = calculateDistance(userPosition.lat, userPosition.lng, latB, lngB);
+        
+        return distA - distB;
+      });
+
+      // 정렬된 순서대로 DOM에 다시 추가
+      items.forEach(item => trashList.appendChild(item));
+    }
+
+    // 페이지 로드 시 쓰레기통 정렬
+    document.addEventListener('DOMContentLoaded', function() {
+      sortTrashItemsByDistance();
+    });
+  </script>
+</body>
+</html> 

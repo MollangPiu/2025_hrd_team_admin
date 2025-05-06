@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>미화원 전용 화면</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --light-gray: #f5f5f5;
+      --dark-gray: #333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: '맑은 고딕', sans-serif;
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+        padding: 20px 20px 20px 60px;
+      }
+
+      .cleaner-info {
+        position: fixed;
+        top: 0;
+        left: -300px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      }
+
+      .cleaner-info.show {
+        left: 0;
+      }
+
+      .toggle-profile {
+        display: flex;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .toggle-profile {
+        display: none;
+      }
+
+      .cleaner-info {
+        position: static;
+        height: auto;
+        box-shadow: none;
+      }
+
+      .overlay {
+        display: none;
+      }
+    }
+
+    .toggle-profile {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: var(--secondary-color);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      .overlay.show {
+        display: block;
+      }
+    }
+
+    .cleaner-info {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .profile-tab {
+      padding: 8px 15px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: var(--dark-gray);
+      border-radius: 5px;
+      transition: all 0.3s;
+    }
+
+    .profile-tab:hover {
+      background-color: var(--light-gray);
+    }
+
+    .profile-tab.active {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+
+    .profile-content {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    .profile-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .profile-section {
+      margin-bottom: 20px;
+    }
+
+    .profile-section-title {
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .profile-stats {
+      background-color: var(--light-gray);
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .profile-stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .profile-stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .profile-stat-label {
+      color: var(--dark-gray);
+    }
+
+    .profile-stat-value {
+      font-weight: bold;
+    }
+
+    .work-status-section {
+      padding: 15px;
+      background-color: var(--light-gray);
+      border-radius: 10px;
+    }
+
+    .history-section {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .cleaner-profile {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .cleaner-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: var(--secondary-color);
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+    }
+
+    .cleaner-name {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cleaner-district {
+      color: var(--secondary-color);
+      font-weight: bold;
+    }
+
+    .cleaner-stats {
+      margin-top: 20px;
+    }
+
+    .work-status {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--light-gray);
+      border-radius: 10px;
+    }
+
+    .work-status-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+
+    .work-status-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .work-status-option {
+      padding: 8px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .work-status-option:hover {
+      background-color: #f0f0f0;
+    }
+
+    .work-status-option.selected {
+      background-color: var(--secondary-color);
+      color: white;
+      border-color: var(--secondary-color);
+    }
+
+    .work-status-option.working { border-color: var(--success-color); }
+    .work-status-option.waiting { border-color: var(--warning-color); }
+    .work-status-option.off-duty { border-color: var(--danger-color); }
+    .work-status-option.vacation { border-color: var(--primary-color); }
+
+    .work-status-option.selected.working { background-color: var(--success-color); }
+    .work-status-option.selected.waiting { background-color: var(--warning-color); }
+    .work-status-option.selected.off-duty { background-color: var(--danger-color); }
+    .work-status-option.selected.vacation { background-color: var(--primary-color); }
+
+    .total-history {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--light-gray);
+      border-radius: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .total-history-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+
+    .history-date-group {
+      margin-bottom: 20px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .history-date {
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background-color: white;
+      border-radius: 6px;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .history-item {
+      padding: 10px;
+      background-color: white;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .history-item:hover {
+      transform: translateX(5px);
+    }
+
+    .history-time {
+      color: var(--secondary-color);
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .history-location {
+      color: var(--dark-gray);
+      margin: 5px 0;
+      font-weight: 500;
+    }
+
+    .history-details {
+      color: #666;
+      font-size: 0.9em;
+      display: flex;
+      gap: 15px;
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      color: var(--dark-gray);
+    }
+
+    .stat-value {
+      font-weight: bold;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 20px;
+    }
+
+    .map-container {
+      height: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .trash-list {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .sort-controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .sort-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--secondary-color);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .sort-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .sort-btn.active {
+      background-color: var(--primary-color);
+    }
+
+    .trash-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .trash-item:hover {
+      background-color: var(--light-gray);
+    }
+
+    .trash-item.selected {
+      background-color: rgba(147, 112, 219, 0.1);
+      border-left: 4px solid #9370db;
+    }
+
+    .trash-item:last-child {
+      border-bottom: none;
+    }
+
+    .trash-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .trash-address {
+      font-weight: bold;
+    }
+
+    .trash-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .empty-btn {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 15px;
+      background-color: var(--secondary-color);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+
+    .empty-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .empty-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .empty-modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .empty-modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .empty-modal-message {
+      margin-bottom: 20px;
+      color: var(--dark-gray);
+    }
+
+    .empty-modal-close {
+      padding: 8px 20px;
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .trash-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .status-normal { background-color: var(--success-color); }
+    .status-warning { background-color: var(--warning-color); }
+    .status-critical { background-color: var(--danger-color); }
+
+    .trash-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .trash-detail-item {
+      font-size: 0.9em;
+      color: var(--dark-gray);
+    }
+
+    .progress-bar {
+      height: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .fill-normal { background-color: var(--success-color); }
+    .fill-warning { background-color: var(--warning-color); }
+    .fill-critical { background-color: var(--danger-color); }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--dark-gray);
+    }
+
+    .history-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-time {
+      font-weight: bold;
+      color: var(--secondary-color);
+    }
+
+    .history-details {
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+
+    .average-cycle {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: var(--light-gray);
+      border-radius: 5px;
+      font-size: 0.9em;
+    }
+
+    .trash-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--secondary-color);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .action-btn:hover {
+      background-color: #2980b9;
+    }
+
+    .action-btn.history {
+      background-color: var(--primary-color);
+    }
+
+    .action-btn.history:hover {
+      background-color: #1a252f;
+    }
+
+    .logout-btn {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .profile-logout {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      text-align: center;
+    }
+
+    .profile-logout-btn {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 1em;
+      width: 100%;
+    }
+
+    .profile-logout-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-title">쓰레기통 관리 시스템</div>
+  </div>
+  <button class="toggle-profile" id="toggleProfile">👤</button>
+  <div class="overlay" id="overlay"></div>
+  <div class="container">
+    <div class="cleaner-info">
+      <div class="cleaner-profile">
+        <div class="cleaner-avatar">👤</div>
+        <div class="cleaner-name">김미화</div>
+        <div class="cleaner-district">은평구 담당</div>
+      </div>
+
+      <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="profile">프로필</button>
+        <button class="profile-tab" data-tab="history">히스토리</button>
+        <button class="profile-tab" data-tab="status">상태변경</button>
+      </div>
+
+      <div class="profile-content active" id="profileContent">
+        <div class="profile-section">
+          <div class="profile-section-title">담당 정보</div>
+          <div class="profile-stats">
+            <div class="profile-stat-item">
+              <span class="profile-stat-label">담당 쓰레기통</span>
+              <span class="profile-stat-value">15개</span>
+            </div>
+            <div class="profile-stat-item">
+              <span class="profile-stat-label">오늘 처리</span>
+              <span class="profile-stat-value">8개</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-logout">
+          <button class="profile-logout-btn" onclick="window.location.href='index.html'">로그아웃</button>
+        </div>
+      </div>
+
+      <div class="profile-content" id="historyContent">
+        <div class="profile-section">
+          <div class="profile-section-title">전체 히스토리</div>
+          <div class="history-section">
+            <div class="history-date-group">
+              <div class="history-date">2024-03-20</div>
+              <div class="history-item">
+                <div class="history-time">15:30</div>
+                <div class="history-location">서울시 은평구 신사동주민센터앞</div>
+                <div class="history-details">처리 시간: 7분 | 처리량: 30%</div>
+              </div>
+              <div class="history-item">
+                <div class="history-time">14:15</div>
+                <div class="history-location">서울시 은평구 디지털미디어시티역앞</div>
+                <div class="history-details">처리 시간: 8분 | 처리량: 45%</div>
+              </div>
+              <div class="history-item">
+                <div class="history-time">14:00</div>
+                <div class="history-location">서울시 은평구 대조동주민센터앞</div>
+                <div class="history-details">처리 시간: 9분 | 처리량: 40%</div>
+              </div>
+            </div>
+            <div class="history-date-group">
+              <div class="history-date">2024-03-19</div>
+              <div class="history-item">
+                <div class="history-time">16:45</div>
+                <div class="history-location">서울시 은평구 은평구청앞</div>
+                <div class="history-details">처리 시간: 10분 | 처리량: 65%</div>
+              </div>
+              <div class="history-item">
+                <div class="history-time">15:20</div>
+                <div class="history-location">서울시 은평구 응암역앞</div>
+                <div class="history-details">처리 시간: 8분 | 처리량: 35%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-content" id="statusContent">
+        <div class="profile-section">
+          <div class="profile-section-title">근무 상태 변경</div>
+          <div class="work-status-section">
+            <div class="work-status-options">
+              <div class="work-status-option working selected">근무중</div>
+              <div class="work-status-option waiting">근무대기</div>
+              <div class="work-status-option off-duty">당번아님</div>
+              <div class="work-status-option vacation">휴가</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+
+      <div class="trash-list">
+        <div class="sort-controls">
+          <button class="sort-btn" id="sortByFill">채워짐 순서</button>
+          <button class="sort-btn" id="sortByDistance">거리 순서</button>
+        </div>
+        <div class="trash-item" data-lat="37.6000" data-lng="126.9300">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 은평구청앞</div>
+            <span class="trash-status status-warning">주의</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-warning" style="width: 65%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 14:30</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>3시간 15분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.5989" data-lng="126.9153">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 응암역앞</div>
+            <span class="trash-status status-normal">정상</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-normal" style="width: 35%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 13:45</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>4시간 30분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6100" data-lng="126.9298">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 불광역앞</div>
+            <span class="trash-status status-critical">긴급</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-critical" style="width: 85%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 12:15</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>2시간 45분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6006" data-lng="126.9358">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 녹번역앞</div>
+            <span class="trash-status status-normal">정상</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-normal" style="width: 25%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 15:00</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>5시간 00분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6368" data-lng="126.9178">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 구파발역앞</div>
+            <span class="trash-status status-warning">주의</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-warning" style="width: 75%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 11:30</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>3시간 00분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6180" data-lng="126.9210">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 연신내역앞</div>
+            <span class="trash-status status-critical">긴급</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-critical" style="width: 95%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 10:15</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>2시간 30분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6147" data-lng="126.9173">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 대조동주민센터앞</div>
+            <span class="trash-status status-normal">정상</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-normal" style="width: 40%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 14:00</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>4시간 00분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.6444" data-lng="126.9198">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 진관동주민센터앞</div>
+            <span class="trash-status status-warning">주의</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-warning" style="width: 60%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 13:00</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>3시간 45분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.5953" data-lng="126.9097">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 신사동주민센터앞</div>
+            <span class="trash-status status-normal">정상</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-normal" style="width: 30%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 15:30</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>5시간 15분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.5846" data-lng="126.9096">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 증산동주민센터앞</div>
+            <span class="trash-status status-critical">긴급</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-critical" style="width: 90%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 09:45</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>2시간 15분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.5801" data-lng="126.8956">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 수색역앞</div>
+            <span class="trash-status status-warning">주의</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-warning" style="width: 70%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 12:00</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>3시간 30분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+
+        <div class="trash-item" data-lat="37.5760" data-lng="126.9013">
+          <div class="trash-header">
+            <div class="trash-address">서울시 은평구 디지털미디어시티역앞</div>
+            <span class="trash-status status-normal">정상</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-normal" style="width: 45%"></div>
+          </div>
+          <div class="trash-details">
+            <div class="trash-detail-item">
+              <div>마지막 비운 시간</div>
+              <div>2024-03-20 14:15</div>
+            </div>
+            <div class="trash-detail-item">
+              <div>평균 비우기 주기</div>
+              <div>4시간 15분</div>
+            </div>
+          </div>
+          <div class="trash-actions">
+            <button class="action-btn empty-btn">🗑️ 비우기</button>
+            <button class="action-btn history">📋 히스토리</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="historyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">쓰레기통 비우기 히스토리</div>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div id="historyList">
+        <div class="history-item">
+          <div class="history-time">2024-03-20 14:30</div>
+          <div class="history-details">
+            <div>처리 시간: 8분</div>
+            <div>처리량: 85%</div>
+          </div>
+        </div>
+        <div class="history-item">
+          <div class="history-time">2024-03-20 11:15</div>
+          <div class="history-details">
+            <div>처리 시간: 7분</div>
+            <div>처리량: 90%</div>
+          </div>
+        </div>
+        <div class="history-item">
+          <div class="history-time">2024-03-20 08:00</div>
+          <div class="history-details">
+            <div>처리 시간: 9분</div>
+            <div>처리량: 88%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script>
+    // 프로필 토글 기능
+    const toggleProfile = document.getElementById('toggleProfile');
+    const cleanerInfo = document.querySelector('.cleaner-info');
+    const overlay = document.getElementById('overlay');
+
+    toggleProfile.addEventListener('click', function() {
+      cleanerInfo.classList.toggle('show');
+      overlay.classList.toggle('show');
+    });
+
+    overlay.addEventListener('click', function() {
+      cleanerInfo.classList.remove('show');
+      overlay.classList.remove('show');
+    });
+
+    // 미화원의 현재 위치 (예시: 은평구청)
+    const cleanerPosition = {
+      lat: 37.6000,
+      lng: 126.9300
+    };
+
+    // 두 지점 간의 거리 계산 함수 (Haversine 공식)
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371; // 지구의 반경 (km)
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c; // km 단위로 반환
+    }
+
+    // 정렬 상태 관리
+    let currentSort = null; // 'fill' 또는 'distance' 또는 null
+
+    // 정렬 함수
+    function sortTrashItems() {
+      const trashList = document.querySelector('.trash-list');
+      const items = Array.from(document.querySelectorAll('.trash-item'));
+      
+      items.sort((a, b) => {
+        let comparison = 0;
+        
+        // 채워짐 정도로 정렬
+        if (currentSort === 'fill') {
+          const fillA = parseInt(a.querySelector('.progress-fill').style.width);
+          const fillB = parseInt(b.querySelector('.progress-fill').style.width);
+          comparison = fillB - fillA;
+        }
+        
+        // 거리로 정렬
+        if (currentSort === 'distance') {
+          const latA = parseFloat(a.dataset.lat);
+          const lngA = parseFloat(a.dataset.lng);
+          const latB = parseFloat(b.dataset.lat);
+          const lngB = parseFloat(b.dataset.lng);
+          
+          const distA = calculateDistance(cleanerPosition.lat, cleanerPosition.lng, latA, lngA);
+          const distB = calculateDistance(cleanerPosition.lat, cleanerPosition.lng, latB, lngB);
+          
+          comparison = distA - distB;
+        }
+        
+        return comparison;
+      });
+
+      // 정렬된 순서대로 DOM에 다시 추가
+      items.forEach(item => trashList.appendChild(item));
+    }
+
+    // 정렬 버튼 이벤트 리스너
+    document.getElementById('sortByFill').addEventListener('click', function() {
+      if (currentSort === 'fill') {
+        currentSort = null;
+        this.classList.remove('active');
+      } else {
+        currentSort = 'fill';
+        document.getElementById('sortByDistance').classList.remove('active');
+        this.classList.add('active');
+      }
+      sortTrashItems();
+    });
+
+    document.getElementById('sortByDistance').addEventListener('click', function() {
+      if (currentSort === 'distance') {
+        currentSort = null;
+        this.classList.remove('active');
+      } else {
+        currentSort = 'distance';
+        document.getElementById('sortByFill').classList.remove('active');
+        this.classList.add('active');
+      }
+      sortTrashItems();
+    });
+
+    // 지도 초기화
+    const map = L.map('map').setView([37.6024, 126.9291], 15);
+
+    // OpenStreetMap 타일 레이어 추가
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // 미화원 마커 추가
+    const cleanerIcon = L.divIcon({
+      className: 'cleaner-icon',
+      html: `<div style="
+        position: relative;
+        background-color: #2ecc71; 
+        width: 32px; 
+        height: 32px; 
+        border-radius: 50%; 
+        border: 2px solid white;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      ">👤</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const cleanerMarker = L.marker([37.6015, 126.9300], { icon: cleanerIcon })
+      .addTo(map)
+      .bindPopup('미화원 현재 위치');
+
+    // 쓰레기통 마커 추가
+    const trashMarkers = [];
+    let lastSelectedItem = null;
+
+    document.querySelectorAll('.trash-item').forEach(item => {
+      const lat = parseFloat(item.dataset.lat);
+      const lng = parseFloat(item.dataset.lng);
+      const status = item.querySelector('.trash-status').classList.contains('status-critical') ? 'critical' :
+                    item.querySelector('.trash-status').classList.contains('status-warning') ? 'warning' : 'normal';
+      
+      const fillColor = status === 'critical' ? '#e74c3c' : 
+                       status === 'warning' ? '#f39c12' : '#2ecc71';
+
+      const icon = L.divIcon({
+        className: 'trash-icon',
+        html: `<div style="
+          position: relative;
+          background-color: ${fillColor}; 
+          width: 24px; 
+          height: 24px; 
+          border-radius: 50%; 
+          border: 2px solid white;
+          box-shadow: 0 0 5px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 10px;
+        ">${item.querySelector('.progress-fill').style.width}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+      trashMarkers.push(marker);
+
+      // 마커 클릭 이벤트
+      marker.on('click', function() {
+        if (lastSelectedItem) {
+          lastSelectedItem.classList.remove('selected');
+        }
+        item.classList.add('selected');
+        lastSelectedItem = item;
+        
+        // 지도 컨테이너로 스크롤
+        document.querySelector('.map-container').scrollIntoView({ behavior: 'smooth' });
+        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // 리스트 아이템 클릭 이벤트
+      item.addEventListener('click', function() {
+        if (lastSelectedItem) {
+          lastSelectedItem.classList.remove('selected');
+        }
+        item.classList.add('selected');
+        lastSelectedItem = item;
+        
+        // 지도 컨테이너로 스크롤
+        document.querySelector('.map-container').scrollIntoView({ behavior: 'smooth' });
+        map.setView([lat, lng], 18);
+        marker.openPopup();
+      });
+    });
+
+    // 모달 관련 기능
+    const modal = document.getElementById('historyModal');
+    const closeModal = document.querySelector('.close-modal');
+
+    document.querySelectorAll('.trash-item').forEach(item => {
+      item.addEventListener('dblclick', function() {
+        modal.style.display = 'block';
+      });
+    });
+
+    closeModal.addEventListener('click', function() {
+      modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // 비우기 모달 관련 기능
+    const emptyModal = document.getElementById('emptyModal');
+    const emptyModalClose = document.querySelector('.empty-modal-close');
+
+    document.querySelectorAll('.empty-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // 리스트 아이템 클릭 이벤트 방지
+        emptyModal.style.display = 'block';
+      });
+    });
+
+    document.querySelectorAll('.history').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // 리스트 아이템 클릭 이벤트 방지
+        modal.style.display = 'block';
+      });
+    });
+
+    // 탭 전환 기능
+    const tabs = document.querySelectorAll('.profile-tab');
+    const contents = document.querySelectorAll('.profile-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        // 모든 탭과 컨텐츠의 active 클래스 제거
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        
+        // 선택된 탭과 해당 컨텐츠에 active 클래스 추가
+        this.classList.add('active');
+        const targetId = this.dataset.tab + 'Content';
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+
+    // 근무 상태 선택 기능
+    const workStatusOptions = document.querySelectorAll('.work-status-option');
+    workStatusOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        workStatusOptions.forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+
+    // 전체 히스토리 데이터
+    const historyData = [
+      { date: '2024-03-20', time: '15:30', location: '서울시 은평구 신사동주민센터앞', duration: '7분', amount: '30%' },
+      { date: '2024-03-20', time: '14:15', location: '서울시 은평구 디지털미디어시티역앞', duration: '8분', amount: '45%' },
+      { date: '2024-03-20', time: '14:00', location: '서울시 은평구 대조동주민센터앞', duration: '9분', amount: '40%' },
+      { date: '2024-03-19', time: '16:45', location: '서울시 은평구 은평구청앞', duration: '10분', amount: '65%' },
+      { date: '2024-03-19', time: '15:20', location: '서울시 은평구 응암역앞', duration: '8분', amount: '35%' }
+    ];
+
+    // 히스토리 데이터를 날짜별로 그룹화하고 시간순으로 정렬
+    const groupedHistory = historyData.reduce((acc, item) => {
+      if (!acc[item.date]) {
+        acc[item.date] = [];
+      }
+      acc[item.date].push(item);
+      return acc;
+    }, {});
+
+    // 각 날짜별로 시간순 정렬
+    Object.keys(groupedHistory).forEach(date => {
+      groupedHistory[date].sort((a, b) => b.time.localeCompare(a.time));
+    });
+
+    // 날짜순으로 정렬된 키 배열 생성
+    const sortedDates = Object.keys(groupedHistory).sort((a, b) => b.localeCompare(a));
+  </script>
+</body>
+</html> 
